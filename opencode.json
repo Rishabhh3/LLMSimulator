@@ -1,0 +1,13 @@
+{
+  "models": {
+    "local": {
+      "name": "qwen2.5-coder:14b",
+      "parameters": {
+        "num_ctx": 32768,
+        "flash_attn": true,
+        "temperature": 0.2,
+        "top_p": 0.9
+      }
+    }
+  }
+}
