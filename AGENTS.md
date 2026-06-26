@@ -40,6 +40,10 @@ cd build
 | `src/dram/` | DRAMInterface + PIM kernels + Ramulator 2.0 submodule |
 | `src/common/` | `type.h` type aliases, `assert.h` utilities |
 
+##  Project Mapping & Context
+* **System Map:** Detailed module tracking, file locations, and structural dataflows are documented in `ARCHITECTURE.md`. 
+* **Rule:** If you are unsure which files contain a specific structural module or execution block, explicitly read `ARCHITECTURE.md` first before guessing paths or scanning directories.
+
 ## Linking quirk
 
 `dram` is a **static library** linked with `-Wl,--whole-archive` in `CMakeLists.txt:19` because it contains the Ramulator 2.0 submodule's objects. Other libraries (`hardware`, `module`, `model`, `scheduler`) are **object libraries**.
