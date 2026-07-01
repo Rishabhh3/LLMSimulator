@@ -8,6 +8,7 @@ namespace llm_system {
 MMapController::MMapController(MemoryConfig memory_config)
     : memory_config(memory_config) {
   start_addr_normal = 0;
+  start_addr_cache = 0;
   start_addr_logic = 0;
 };
 
@@ -157,7 +158,10 @@ addr MMapController::vecToAddrLOGIC(AddrVec addr_vec) {
 // allocate tensor in all channel
 void MMapController::setNormal(Tensor::Ptr tensor) {
   addr start_address = start_addr_normal;
-  if (tensor->tag.compare("act") && tensor->tag.compare("cache")) {
+  if (tensor->tag == "cache") {
+    start_address = start_addr_cache;
+    start_addr_cache += tensor->getSize();
+  } else if (tensor->tag.compare("act")) {
     start_addr_normal += tensor->getSize();
   } else {
     start_address = 0;

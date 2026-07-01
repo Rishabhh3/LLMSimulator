@@ -5,8 +5,8 @@
 #include <memory>
 #include <vector>
 
-#include "base/type.h"
 #include "common/assert.h"
+#include "common/type.h"
 #include "dram/dram_request.h"
 #include "dram/pim_request.h"
 #include "hardware/hardware_config.h"

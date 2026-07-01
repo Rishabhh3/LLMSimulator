@@ -55,4 +55,16 @@ class MemoryConfig {
     32     // granul
   );
 
+  static MemoryConfig hbf_5stack = MemoryConfig(
+    5,      // num_cube
+    5,      // num_logic_cube
+    32,     // num_channel
+    2,      // num_rank
+    4,      // num_bankgroup
+    4,      // num_bank
+    16384,  // num_row
+    32,     // num_col
+    32      // granul
+  );
+
 }  // namespace llm_system

@@ -10,6 +10,7 @@
 #include "dram/dram_type.h"
 #include "dram/pim_request.h"
 #include "dram/pimkernel/pim_kernel.h"
+#include "factory.h"
 #include "frontend/frontend.h"
 #include "memory_system/memory_system.h"
 #include "module/status.h"

@@ -34,6 +34,7 @@ int main(int argc, char *argv[]) {
   int iter = config["simulation"]["iter"].as<int>();
 
   int max_batch_size = config["serving"]["max_batch_size"].as<int>();
+  int batch_size_per_dp = config["serving"]["batchsize"].as<int>();
 
   int max_process_token = config["serving"]["max_process_token"].as<int>();
   std::string output_path = config["log"]["output_directory"].as<std::string>();
@@ -50,6 +51,9 @@ int main(int argc, char *argv[]) {
   }
   else if (config["system"]["gpu_gen"].as<std::string>() == "B200"){
     system_config = B200;
+  }
+  else if (config["system"]["gpu_gen"].as<std::string>() == "B200_HBF" || config["system"]["gpu_gen"].as<std::string>() == "HBF"){
+    system_config = B200_HBF;
   }
   else{
     fail("No GPU generation information");
@@ -185,6 +189,8 @@ int main(int argc, char *argv[]) {
       config["system"]["distribution"]["expert_tensor_degree"].as<int>();
   model_config.ne_tp_dg =
       config["system"]["distribution"]["none_expert_tensor_degree"].as<int>();
+  int dp_degree = system_config.num_device * system_config.num_node / model_config.ne_tp_dg;
+  int total_batch_size = batch_size_per_dp * dp_degree;
   
   model_config.compressed_kv =
       config["system"]["optimization"]["compressed_kv"].as<bool>();
@@ -223,7 +229,7 @@ int main(int argc, char *argv[]) {
   }
   Scheduler::Ptr scheduler =
       Scheduler::Create(system_config, model_config, expert_file_path,
-                        max_batch_size, 8192, max_process_token);
+                        total_batch_size, 8192, max_process_token);
 
   Cluster::Ptr cluster = Cluster::Create(system_config, scheduler);
 

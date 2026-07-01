@@ -45,6 +45,13 @@ class SystemConfig {
                  bool use_flash_attention = true,
                  bool reuse_kv_cache = true,
                  hw_metric kv_cache_reuse_rate = 0.5,
+                 hw_metric kv_cache_waf = 1.0,
+                 int hbf_stacks_per_device = 0,
+                 hw_metric hbf_capacity_per_stack = 0,
+                 hw_metric hbf_read_bandwidth_per_stack = 0,
+                 hw_metric hbf_write_bandwidth_per_stack = 0,
+                 hw_metric hbf_read_latency = 0,
+                 hw_metric hbf_write_latency = 0,
                  bool prefill_mode = false,
                  bool decode_mode = false,
                  bool use_inject_rate = false,
@@ -81,6 +88,13 @@ class SystemConfig {
         use_flash_attention(use_flash_attention),
         reuse_kv_cache(reuse_kv_cache),
         kv_cache_reuse_rate(kv_cache_reuse_rate),
+        kv_cache_waf(kv_cache_waf),
+        hbf_stacks_per_device(hbf_stacks_per_device),
+        hbf_capacity_per_stack(hbf_capacity_per_stack),
+        hbf_read_bandwidth_per_stack(hbf_read_bandwidth_per_stack),
+        hbf_write_bandwidth_per_stack(hbf_write_bandwidth_per_stack),
+        hbf_read_latency(hbf_read_latency),
+        hbf_write_latency(hbf_write_latency),
         prefill_mode(prefill_mode),
         decode_mode(decode_mode),
         use_inject_rate(use_inject_rate),
@@ -143,6 +157,13 @@ class SystemConfig {
   bool use_flash_attention = true; 
   bool reuse_kv_cache = true;
   hw_metric kv_cache_reuse_rate; 
+  hw_metric kv_cache_waf = 1.0;
+  int hbf_stacks_per_device = 0;
+  hw_metric hbf_capacity_per_stack = 0;
+  hw_metric hbf_read_bandwidth_per_stack = 0;
+  hw_metric hbf_write_bandwidth_per_stack = 0;
+  hw_metric hbf_read_latency = 0;
+  hw_metric hbf_write_latency = 0;
   // this rate includes, 
   // 1) how long does prompt share tokens with cached KV 
   // 2) does prompt share tokens with cached KV
@@ -190,6 +211,13 @@ static SystemConfig A100 = SystemConfig(
                  true,                              // use_flash_attention
                  false,                             // reuse_kv_cache
                  0.0,                               // kv_cache_reuse_rate
+                 1.0,                               // kv_cache_waf
+                 0,                                 // hbf_stacks_per_device
+                 0,                                 // hbf_capacity_per_stack
+                 0,                                 // hbf_read_bandwidth_per_stack
+                 0,                                 // hbf_write_bandwidth_per_stack
+                 0,                                 // hbf_read_latency
+                 0,                                 // hbf_write_latency
                  false,                             // prefill_mode
                  false,                             // decode_mode
                  false,                             // use_inject_rate
@@ -228,6 +256,13 @@ static SystemConfig H100 = SystemConfig(
                  true,                              // use_flash_attention
                  false,                             // reuse_kv_cache
                  0.0,                               // kv_cache_reuse_rate
+                 1.0,                               // kv_cache_waf
+                 0,                                 // hbf_stacks_per_device
+                 0,                                 // hbf_capacity_per_stack
+                 0,                                 // hbf_read_bandwidth_per_stack
+                 0,                                 // hbf_write_bandwidth_per_stack
+                 0,                                 // hbf_read_latency
+                 0,                                 // hbf_write_latency
                  false,                             // prefill_mode
                  false,                             // decode_mode
                  false,                             // use_inject_rate
@@ -266,6 +301,13 @@ static SystemConfig B100 = SystemConfig(
                   true,                              // use_flash_attention
                   false,                             // reuse_kv_cache
                   0.0,                               // kv_cache_reuse_rate
+                   1.0,                               // kv_cache_waf
+                   0,                                 // hbf_stacks_per_device
+                   0,                                 // hbf_capacity_per_stack
+                   0,                                 // hbf_read_bandwidth_per_stack
+                   0,                                 // hbf_write_bandwidth_per_stack
+                   0,                                 // hbf_read_latency
+                   0,                                 // hbf_write_latency
                   false,                             // prefill_mode
                   false,                             // decode_mode
                   false,                             // use_inject_rate
@@ -304,12 +346,64 @@ static SystemConfig B200 = SystemConfig(
                  true,                              // use_flash_attention
                  false,                             // reuse_kv_cache
                  0.0,                               // kv_cache_reuse_rate
+                 1.0,                               // kv_cache_waf
+                 0,                                 // hbf_stacks_per_device
+                 0,                                 // hbf_capacity_per_stack
+                 0,                                 // hbf_read_bandwidth_per_stack
+                 0,                                 // hbf_write_bandwidth_per_stack
+                 0,                                 // hbf_read_latency
+                 0,                                 // hbf_write_latency
                  false,                             // prefill_mode
                  false,                             // decode_mode
                  false,                             // use_inject_rate
                  10,                                // request_per_second
                  8,                                 // num_cube
                  8                                  // int num_logic_cube
+                 );
+
+static SystemConfig B200_HBF = SystemConfig(
+                 "B200_HBF",                       // gpu gen
+                 1,                                 // num_node 
+                 2,                                 // num_device
+                 130.0,                             // node_ict_latency, connectx-7 
+                 50.0 * 1000 * 1000 * 1000,         // node_ict_bandwidth
+                 0.8 * 1000,                        // device_ict_latency, nvlink 5.0
+                 900.0 * 1000 * 1000 * 1000,        // device_ict_bandwidth
+                 2250.0 * 1000 * 1000 * 1000 * 1000,// compute_peak_flops, FP16
+                 8.0 * 1000 * 1000 * 1000 * 1000,   // memory_bandwidth, 5 HBF stacks x 1.6TB/s read bandwidth
+                 5.0 * 512 * 1024 * 1024 * 1024,    // memory_capacity
+                 4,                                 // logic_x 
+                 8,                                 // logic_op_b                 
+                 16,                                // pim_x
+                 1,                                 // pim_op_b
+                 {},                                // processor_type
+                 false,                             // parallel_execution
+                 false,                             // hetero_subbatch
+                 ProcessorType::GPU,                // high_processor_type
+                 ProcessorType::LOGIC,              // low_processor_type
+                 false,                             // communication_hiding
+                 false,                             // disagg_system
+                 false,                             // use_low_unit_moe_only 
+                 false,                             // use_ramulator
+                 true,                              // exit_out_of_memory
+                 false,                             // mem_cap_limit
+                 true,                              // use_flash_mla
+                 true,                              // use_flash_attention
+                 false,                             // reuse_kv_cache
+                 0.0,                               // kv_cache_reuse_rate
+                 1.0,                               // kv_cache_waf
+                 5,                                 // hbf_stacks_per_device
+                 512.0 * 1024 * 1024 * 1024,        // hbf_capacity_per_stack
+                 1.6 * 1000 * 1000 * 1000 * 1000,   // hbf_read_bandwidth_per_stack
+                 48.0 * 1000 * 1000 * 1000,         // hbf_write_bandwidth_per_stack
+                 3.0 * 1000,                        // hbf_read_latency
+                 100.0 * 1000,                      // hbf_write_latency
+                 false,                             // prefill_mode
+                 false,                             // decode_mode
+                 false,                             // use_inject_rate
+                 10,                                // request_per_second
+                 5,                                 // num_cube
+                 5                                  // int num_logic_cube
                  );
 
 }  // namespace llm_system

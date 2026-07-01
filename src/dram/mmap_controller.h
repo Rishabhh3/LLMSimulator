@@ -31,6 +31,7 @@ class MMapController : public std::enable_shared_from_this<MMapController> {
 
  private:
   addr start_addr_normal;
+  addr start_addr_cache;
   addr start_addr_logic;
 
   MMapController(MemoryConfig memory_config);

@@ -238,12 +238,25 @@ bool Cluster::checkMemorySize() {
   }            
                  
   std::cout << "Total: " << size / 1024.0 / 1024 / 1024 << "GB" << std::endl;
+  if (config.hbf_stacks_per_device > 0) {
+    hw_metric hbf_device_capacity =
+        config.hbf_stacks_per_device * config.hbf_capacity_per_stack;
+    hw_metric hbf_device_write_bw =
+        config.hbf_stacks_per_device * config.hbf_write_bandwidth_per_stack;
+    std::cout << "HBF stacks per device: " << config.hbf_stacks_per_device
+              << ", capacity: " << hbf_device_capacity / 1024.0 / 1024 / 1024
+              << "GB, read BW: "
+              << config.memory_bandwidth / 1000 / 1000 / 1000 / 1000
+              << "TB/s, write BW: "
+              << hbf_device_write_bw / 1024.0 / 1024 / 1024 << "GB/s"
+              << ", WAF: " << config.kv_cache_waf << std::endl;
+  }
   if (size > config.memory_capacity) {
     out_of_memory = true;
     if (config.exit_out_of_memory) {
       return true;
     } else if (config.mem_cap_limit == true){
-      long long kv_cache_size_per_seq = 0;
+      hw_metric kv_cache_size_per_seq = 0;
       if((device->model_config.qk_rope_head_dim != 0) && (device->model_config.compressed_kv == true)){
         kv_cache_size_per_seq = 1.0 * 
           (device->model_config.input_len + device->model_config.output_len) *
@@ -258,6 +271,7 @@ bool Cluster::checkMemorySize() {
             device->model_config.num_kv_heads / device->model_config.ne_tp_dg *
             device->model_config.precision_byte;
       }
+      kv_cache_size_per_seq *= config.kv_cache_waf;
       hw_metric avail_capacity = 0;
       if(device->model_config.q_lora_rank == 0){
         avail_capacity =
@@ -311,16 +325,30 @@ bool Cluster::checkHeteroMemorySize() {
   double size = size_vector.at(1) + size_vector.at(2) - 3.3 * 1024.0 * 1024.0 * 1024.0 /
                 device->model_config.ne_tp_dg; // Non MoE weight
   std::cout << "Total: " << size / 1024.0 / 1024 / 1024  << "GB" << std::endl;
+  if (config.hbf_stacks_per_device > 0) {
+    hw_metric hbf_device_capacity =
+        config.hbf_stacks_per_device * config.hbf_capacity_per_stack;
+    hw_metric hbf_device_write_bw =
+        config.hbf_stacks_per_device * config.hbf_write_bandwidth_per_stack;
+    std::cout << "HBF stacks per device: " << config.hbf_stacks_per_device
+              << ", capacity: " << hbf_device_capacity / 1024.0 / 1024 / 1024
+              << "GB, read BW: "
+              << config.memory_bandwidth / 1000 / 1000 / 1000 / 1000
+              << "TB/s, write BW: "
+              << hbf_device_write_bw / 1024.0 / 1024 / 1024 << "GB/s"
+              << ", WAF: " << config.kv_cache_waf << std::endl;
+  }
   if (size > config.memory_capacity) {
     if (config.exit_out_of_memory) {
       return true;
     } else {
-      long kv_cache_size_per_seq =
+        hw_metric kv_cache_size_per_seq =
           2 *
           (device->model_config.input_len + device->model_config.output_len) *
           device->model_config.num_layers * device->model_config.head_dim *
           device->model_config.num_kv_heads / device->model_config.ne_tp_dg *
           device->model_config.precision_byte;
+      kv_cache_size_per_seq *= config.kv_cache_waf;
 
       hw_metric avail_capacity = config.memory_capacity - (size_vector.at(0) / device->model_config.num_layers) -
         size_vector.at(1);

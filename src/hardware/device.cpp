@@ -37,6 +37,9 @@ Device::Device(SystemConfig config, int device_total_rank, Cluster_ptr cluster)
   else if(config.gpu_gen == "B100" || config.gpu_gen == "B200"){
     dram_cfg_path = "./dram_config_HBM3E_192GB.yaml";
   }
+  else if(config.gpu_gen == "B200_HBF" || config.gpu_gen == "HBF"){
+    dram_cfg_path = "./dram_config_HBM3E_192GB.yaml";
+  }
   YAML::Node cfg = YAML::LoadFile(dram_cfg_path);
 
   double memory_scale_factor = 0;
@@ -52,6 +55,12 @@ Device::Device(SystemConfig config, int device_total_rank, Cluster_ptr cluster)
     // B100, HBM3E 192GB, 8Gbps
     memory_scale_factor = 0.5; // 8.0Gbps pin rate's ideal bandwidth = 8000, tCK = 2000, 1 / 2GHz = 0.5
     memory_config = hbm3e_192GB;
+    memory_config.num_cube = config.num_cube;
+    memory_config.num_logic_cube = config.num_logic_cube;
+  }
+  else if((config.gpu_gen == "B200_HBF") || (config.gpu_gen == "HBF")){
+    memory_scale_factor = 0.5;
+    memory_config = hbf_5stack;
     memory_config.num_cube = config.num_cube;
     memory_config.num_logic_cube = config.num_logic_cube;
   }
